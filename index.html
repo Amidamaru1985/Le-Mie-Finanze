@@ -115,17 +115,19 @@
     .view-section { display: none; }
     .view-section.active { display: block; }
 
-    /* STILI DEDICATI PER LA STAMPA IN PDF */
+    /* STILI SUPER OTTIMIZZATI PER LA STAMPA IN PDF */
     @media print {
-      body { background-color: #ffffff; color: #000000; padding-bottom: 0; }
-      .header, .fab, .navbar, .filters-box, .month-picker button, .privacy-toggle, .btn-delete, .header-btns, .app-signature { display: none !important; }
-      .card { background-color: #ffffff !important; border: 1px solid #ccc !important; box-shadow: none !important; color: #000 !important; }
-      .account-card { background: #f9f9f9 !important; border: 1px solid #ddd !important; }
-      .tx-item { background: #fdfdfd !important; border: 1px solid #eee !important; color: #000 !important; }
-      .tx-amount.entrata { color: #080 !important; }
-      .tx-amount.uscita { color: #c00 !important; }
-      .container { max-width: 100% !important; padding: 0 !important; }
-      #current-month-display { font-size: 1.2rem; font-weight: bold; display: block; margin-bottom: 10px; text-align: center; }
+      body { background-color: #ffffff !important; color: #000000 !important; font-size: 12pt !important; padding-bottom: 0 !important; }
+      .header, .fab, .navbar, .filters-box, .month-picker button, .privacy-toggle, .btn-delete, .header-btns, .app-signature, .alert-box { display: none !important; }
+      .card { background-color: #ffffff !important; border: 1px solid #ddd !important; box-shadow: none !important; color: #000 !important; margin-bottom: 12px !important; padding: 12px !important; }
+      .account-card { background: #f8fafc !important; border: 1px solid #cbd5e1 !important; color: #000 !important; }
+      .tx-item { background: #ffffff !important; border: 1px solid #e2e8f0 !important; color: #000 !important; margin-bottom: 6px !important; padding: 8px !important; }
+      .tx-amount.entrata { color: #16a34a !important; }
+      .tx-amount.uscita { color: #dc2626 !important; }
+      .container { max-width: 100% !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      #current-month-display { font-size: 1.3rem !important; font-weight: bold !important; display: block !important; margin-bottom: 10px !important; text-align: center !important; color: #000 !important; }
+      .accounts-grid { gap: 6px !important; margin-bottom: 12px !important; }
+      .balance-total .amount { font-size: 1.5rem !important; color: #2563eb !important; }
     }
   </style>
 </head>
@@ -869,7 +871,7 @@
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.emElement('a'); // fix typo if any
       a.setAttribute('href', url);
       a.setAttribute('download', 'estratto_conto_finanze.csv');
       a.click();
