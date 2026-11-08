@@ -206,7 +206,7 @@
       </div>
 
       <div class="app-signature">
-        Creato con cura da <span>Fabio Trifilò</span>
+        Created by <span>Fabio Trifilò</span>
       </div>
     </div>
 
@@ -233,7 +233,7 @@
       </div>
 
       <div class="app-signature">
-        Creato con cura da <span>Fabio Trifilò</span>
+        Created by <span>Fabio Trifilò</span>
       </div>
     </div>
 
@@ -260,7 +260,7 @@
       </div>
 
       <div class="app-signature">
-        Creato con cura da <span>Fabio Trifilò</span>
+        Created by <span>Fabio Trifilò</span>
       </div>
     </div>
 
@@ -871,7 +871,7 @@
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
-      const a = document.emElement('a'); // fix typo if any
+      const a = document.createElement('a');
       a.setAttribute('href', url);
       a.setAttribute('download', 'estratto_conto_finanze.csv');
       a.click();
