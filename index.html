@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gestore 3 Conti</title>
+  
+  <link rel="manifest" href="data:application/manifest+json,{
+    %22name%22:%22Miei%20Conti%22,
+    %22short_name%22:%22Finanze%22,
+    %22start_url%22:%22.%22,
+    %22display%22:%22standalone%22,
+    %22background_color%22:%22%230f172a%22,
+    %22theme_color%22:%22%230f172a%22,
+    %22icons%22:[{%22src%22:%22https://via.placeholder.com/512/3b82f6/ffffff?text=%C2%A5%22,%22sizes%22:%22512x512%22,%22type%22:%22image/png%22}]
+  }">
+  <meta name="theme-color" content="#0f172a">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      
+      --db-color: #2563eb;      /* Deutsche Bank: Blu */
+      --ca-color: #16a34a;      /* Crédit Agricole: Verde */
+      --pp-color: #ca8a04;      /* Postepay: Giallo */
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; min-height: 100vh; }
+    
+    .header { background-color: var(--card-bg); padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); position: sticky; top: 0; z-index: 10; }
+    .header h1 { font-size: 1.1rem; font-weight: 700; }
+    .header-btns { display: flex; gap: 8px; }
+    .btn-sm { background: var(--card-border); color: var(--text-main); border: none; padding: 6px 10px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
+    
+    .container { padding: 16px; max-width: 600px; margin: 0 auto; }
+    .card { background-color: var(--card-bg); border-radius: 16px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--card-border); }
+    
+    .balance-total { text-align: center; margin-bottom: 16px; position: relative; }
+    .balance-total .amount { font-size: 1.9rem; font-weight: 800; color: var(--primary); margin-top: 4px; }
+    
+    .privacy-toggle { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 4px; }
+
+    .accounts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+    .account-card { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 6px; text-align: center; border-top: 4px solid var(--card-border); }
+    .account-card.db { border-top-color: var(--db-color); }
+    .account-card.ca { border-top-color: var(--ca-color); }
+    .account-card.pp { border-top-color: var(--pp-color); }
+    
+    .account-card h3 { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .account-card .balance { font-size: 0.95rem; font-weight: bold; word-break: break-all; }
+    
+    .month-picker { display: flex; justify-content: space-between; align-items: center; background-color: var(--card-bg); padding: 8px 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--card-border); }
+    .month-picker button { background: none; border: none; color: var(--primary); font-size: 1.2rem; cursor: pointer; padding: 4px 12px; }
+    
+    .filters-box { display: flex; gap: 8px; margin-bottom: 12px; }
+    .filters-box input, .filters-box select { background: var(--bg-color); border: 1px solid var(--card-border); color: var(--text-main); padding: 8px; border-radius: 8px; font-size: 0.85rem; width: 100%; }
+
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+    .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; border-left: 4px solid var(--card-border); }
+    .tx-item.Deutsche\\ Bank { border-left-color: var(--db-color); }
+    .tx-item.Crédit\\ Agricole { border-left-color: var(--ca-color); }
+    .tx-item.Postepay { border-left-color: var(--pp-color); }
+    
+    .tx-icon { font-size: 1.4rem; margin-right: 10px; }
+    .tx-info { display: flex; align-items: center; }
+    .tx-details h4 { font-size: 0.9rem; margin-bottom: 2px; }
+    .tx-details p { font-size: 0.75rem; color: var(--text-muted); }
+    
+    .tx-right { display: flex; align-items: center; gap: 10px; }
+    .tx-amount { font-size: 0.95rem; font-weight: bold; white-space: nowrap; }
+    .tx-amount.entrata { color: var(--success); }
+    .tx-amount.uscita { color: var(--danger); }
+    .tx-amount.trasferimento { color: var(--warning); }
+    .btn-delete { background: none; border: none; color: #ef4444; font-size: 1rem; cursor: pointer; padding: 2px 6px; opacity: 0.7; }
+    .btn-delete:hover { opacity: 1; }
+    
+    .fab { position: fixed; bottom: 75px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background-color: var(--primary); color: white; border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer; z-index: 99; }
+    .navbar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--card-bg); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+    .nav-item { background: none; border: none; color: var(--text-muted); font-size: 0.75rem; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 50%; }
+    .nav-item.active { color: var(--primary); font-weight: bold; }
+    
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.8); z-index: 100; justify-content: center; align-items: flex-end; }
+    .modal.active { display: flex; }
+    .modal-content { background-color: var(--card-bg); width: 100%; max-width: 600px; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--card-border); }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background-color: var(--bg-color); color: var(--text-main); font-size: 0.95rem; }
+    
+    .inline-add { display: flex; gap: 8px; margin-top: 6px; }
+    
+    .btn { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 8px; }
+    .btn-primary { background-color: var(--primary); color: white; }
+    .btn-secondary { background-color: transparent; border: 1px solid var(--card-border); color: var(--text-muted); }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Miei Conti & Finanze</h1>
+    <div class="header-btns">
+      <button class="btn-sm" onclick="openBalanceModal()">⚙️ Saldi</button>
+      <button class="btn-sm" onclick="exportCSV()">📥 Excel/CSV</button>
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- DASHBOARD -->
+    <div id="view-home" class="view-section active">
+      <div class="card balance-total">
+        <button class="privacy-toggle" id="privacy-btn" onclick="togglePrivacy()" title="Mostra/Nascondi Saldi">👁️</button>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Saldo Totale Cumulativo</span>
+        <div class="amount" id="total-balance">€ 0.00</div>
+      </div>
+
+      <div class="accounts-grid">
+        <div class="account-card db">
+          <h3>Deutsche Bank</h3>
+          <div class="balance" id="acc1-balance">€ 0.00</div>
+        </div>
+        <div class="account-card ca">
+          <h3>Crédit Agricole</h3>
+          <div class="balance" id="acc2-balance">€ 0.00</div>
+        </div>
+        <div class="account-card pp">
+          <h3>Postepay</h3>
+          <div class="balance" id="acc3-balance">€ 0.00</div>
+        </div>
+      </div>
+
+      <div class="month-picker">
+        <button onclick="changeMonth(-1)">&lt;</button>
+        <span id="current-month-display" style="font-weight: bold;">-</span>
+        <button onclick="changeMonth(1)">&gt;</button>
+      </div>
+
+      <div class="filters-box">
+        <input type="text" id="search-input" placeholder="🔍 Cerca nota o cat..." oninput="updateUI()">
+        <select id="filter-account" onchange="updateUI()">
+          <option value="all">Tutti i conti</option>
+          <option value="Deutsche Bank">Deutsche Bank</option>
+          <option value="Crédit Agricole">Crédit Agricole</option>
+          <option value="Postepay">Postepay</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 12px;">Transazioni Mese</h3>
+        <div id="tx-container" class="tx-list"></div>
+      </div>
+    </div>
+
+    <!-- STATISTICHE -->
+    <div id="view-stats" class="view-section">
+      <div class="card">
+        <h3 style="font-size: 1rem; margin-bottom: 12px; text-align: center;">Ripartizione Spese Mensili</h3>
+        <canvas id="chart-categories" style="max-height: 250px;"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="fab" onclick="openModal()">+</button>
+
+  <div class="navbar">
+    <button class="nav-item active" onclick="switchTab('home', this)">🏠 Dashboard</button>
+    <button class="nav-item" onclick="switchTab('stats', this)">📊 Statistiche</button>
+  </div>
+
+  <!-- MODALE MOVIMENTAZIONE -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 16px;">Nuova Movimentazione</h3>
+      <form id="tx-form" onsubmit="handleFormSubmit(event)">
+        <div class="form-group">
+          <label>Tipo Operazione</label>
+          <select id="type" onchange="toggleFormFields()">
+            <option value="uscita">Uscita / Spesa</option>
+            <option value="entrata">Entrata / Incasso</option>
+            <option value="trasferimento">Trasferimento tra conti</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Importo (€)</label>
+          <input type="number" id="amount" step="0.01" required placeholder="0.00">
+        </div>
+        <div class="form-group" id="account-group">
+          <label id="account-label">Conto</label>
+          <select id="account">
+            <option value="Deutsche Bank">Deutsche Bank</option>
+            <option value="Crédit Agricole">Crédit Agricole</option>
+            <option value="Postepay">Postepay</option>
+          </select>
+        </div>
+        <div class="form-group" id="dest-account-group" style="display:none;">
+          <label>A Conto (Destinazione)</label>
+          <select id="dest-account">
+            <option value="Crédit Agricole">Crédit Agricole</option>
+            <option value="Deutsche Bank">Deutsche Bank</option>
+            <option value="Postepay">Postepay</option>
+          </select>
+        </div>
+        <div class="form-group" id="category-group">
+          <label>Categoria</label>
+          <select id="category"></select>
+          <div class="inline-add">
+            <input type="text" id="new-cat-name" placeholder="Nuova cat... (es. Palestra)">
+            <input type="text" id="new-cat-icon" placeholder="Icona (es. 🏋️)" style="width: 70px;">
+            <button type="button" class="btn-sm" onclick="addNewCategory()" style="background:var(--primary);">Aggiungi</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="date" required>
+        </div>
+        <div class="form-group">
+          <label>Note / Descrizione</label>
+          <input type="text" id="note" placeholder="Es. Spesa supermercato">
+        </div>
+        <button type="submit" class="btn btn-primary">Salva Movimento</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODALE SALDI INIZIALI -->
+  <div class="modal" id="balance-modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 16px;">Imposta Saldi Iniziali</h3>
+      <div class="form-group">
+        <label>Deutsche Bank (€)</label>
+        <input type="number" id="init-acc1" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Crédit Agricole (€)</label>
+        <input type="number" id="init-acc2" step="0.01">
+      </div>
