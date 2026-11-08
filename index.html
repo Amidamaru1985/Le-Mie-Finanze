@@ -28,6 +28,11 @@
       --warning: #f59e0b;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      
+      /* Colori Banche */
+      --db-color: #2563eb;      /* Deutsche Bank: Blu */
+      --ca-color: #16a34a;      /* Crédit Agricole: Verde */
+      --pp-color: #ca8a04;      /* Postepay: Giallo */
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; min-height: 100vh; }
@@ -44,7 +49,11 @@
     .balance-total .amount { font-size: 1.9rem; font-weight: 800; color: var(--primary); margin-top: 4px; }
     
     .accounts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-    .account-card { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 12px; padding: 10px 6px; text-align: center; }
+    .account-card { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 6px; text-align: center; border-top: 4px solid var(--card-border); }
+    .account-card.db { border-top-color: var(--db-color); }
+    .account-card.ca { border-top-color: var(--ca-color); }
+    .account-card.pp { border-top-color: var(--pp-color); }
+    
     .account-card h3 { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
     .account-card .balance { font-size: 0.95rem; font-weight: bold; word-break: break-all; }
     
@@ -56,17 +65,22 @@
 
     .tx-list { display: flex; flex-direction: column; gap: 8px; }
     .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; border-left: 4px solid var(--card-border); }
-    .tx-item.entrata { border-left-color: var(--success); }
-    .tx-item.uscita { border-left-color: var(--danger); }
-    .tx-item.trasferimento { border-left-color: var(--warning); }
+    .tx-item.Deutsche\\ Bank { border-left-color: var(--db-color); }
+    .tx-item.Crédit\\ Agricole { border-left-color: var(--ca-color); }
+    .tx-item.Postepay { border-left-color: var(--pp-color); }
+    
     .tx-icon { font-size: 1.4rem; margin-right: 10px; }
     .tx-info { display: flex; align-items: center; }
     .tx-details h4 { font-size: 0.9rem; margin-bottom: 2px; }
     .tx-details p { font-size: 0.75rem; color: var(--text-muted); }
+    
+    .tx-right { display: flex; align-items: center; gap: 10px; }
     .tx-amount { font-size: 0.95rem; font-weight: bold; white-space: nowrap; }
     .tx-amount.entrata { color: var(--success); }
     .tx-amount.uscita { color: var(--danger); }
     .tx-amount.trasferimento { color: var(--warning); }
+    .btn-delete { background: none; border: none; color: #ef4444; font-size: 1rem; cursor: pointer; padding: 2px 6px; opacity: 0.7; }
+    .btn-delete:hover { opacity: 1; }
     
     .fab { position: fixed; bottom: 75px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background-color: var(--primary); color: white; border: none; font-size: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer; z-index: 99; }
     .navbar { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background-color: var(--card-bg); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
@@ -95,7 +109,7 @@
     <h1>Miei Conti & Finanze</h1>
     <div class="header-btns">
       <button class="btn-sm" onclick="openBalanceModal()">⚙️ Saldi</button>
-      <button class="btn-sm" onclick="exportCSV()">📥 CSV</button>
+      <button class="btn-sm" onclick="exportCSV()">📥 Excel/CSV</button>
     </div>
   </div>
 
@@ -105,21 +119,21 @@
     <div id="view-home" class="view-section active">
       <div class="card balance-total">
         <span style="font-size: 0.85rem; color: var(--text-muted);">Saldo Totale Cumulativo</span>
-        <div class="amount" id="total-balance">¥ 0.00</div>
+        <div class="amount" id="total-balance">€ 0.00</div>
       </div>
 
       <div class="accounts-grid">
-        <div class="account-card">
+        <div class="account-card db">
           <h3>Deutsche Bank</h3>
-          <div class="balance" id="acc1-balance">¥ 0.00</div>
+          <div class="balance" id="acc1-balance">€ 0.00</div>
         </div>
-        <div class="account-card">
+        <div class="account-card ca">
           <h3>Crédit Agricole</h3>
-          <div class="balance" id="acc2-balance">¥ 0.00</div>
+          <div class="balance" id="acc2-balance">€ 0.00</div>
         </div>
-        <div class="account-card">
+        <div class="account-card pp">
           <h3>Postepay</h3>
-          <div class="balance" id="acc3-balance">¥ 0.00</div>
+          <div class="balance" id="acc3-balance">€ 0.00</div>
         </div>
       </div>
 
@@ -176,7 +190,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Importo (¥)</label>
+          <label>Importo (€)</label>
           <input type="number" id="amount" step="0.01" required placeholder="0.00">
         </div>
         <div class="form-group" id="account-group">
@@ -223,15 +237,15 @@
     <div class="modal-content">
       <h3 style="margin-bottom: 16px;">Imposta Saldi Iniziali</h3>
       <div class="form-group">
-        <label>Deutsche Bank (¥)</label>
+        <label>Deutsche Bank (€)</label>
         <input type="number" id="init-acc1" step="0.01">
       </div>
       <div class="form-group">
-        <label>Crédit Agricole (¥)</label>
+        <label>Crédit Agricole (€)</label>
         <input type="number" id="init-acc2" step="0.01">
       </div>
       <div class="form-group">
-        <label>Postepay (¥)</label>
+        <label>Postepay (€)</label>
         <input type="number" id="init-acc3" step="0.01">
       </div>
       <button type="button" class="btn btn-primary" onclick="saveInitialBalances()">Salva Saldi</button>
@@ -255,11 +269,12 @@
     let categories = JSON.parse(localStorage.getItem('app_finanze_cats')) || [
       { name: 'Spesa/Alimentari', icon: '🛒' },
       { name: 'Bollette/Utenze', icon: '⚡' },
+      { name: 'Mutuo/Prestiti', icon: '🏠' },
+      { name: 'Assicurazioni', icon: '🛡️' },
       { name: 'Stipendio/Reddito', icon: '💼' },
       { name: 'Svago/Ristoranti', icon: '🍽️' },
       { name: 'Trasporti/Carburante', icon: '🚗' },
       { name: 'Shopping/Abbigliamento', icon: '🛍️' },
-      { name: 'Salute/Farmacia', icon: '💊' },
       { name: 'Altro', icon: '📦' }
     ];
 
@@ -268,6 +283,42 @@
     let myChart = null;
 
     document.getElementById('date').valueAsDate = new Date();
+
+    // GENERAZIONE AUTOMATICA SPESE FISSE MENSILI
+    function checkRecurringTransactions(year, month) {
+      const recurringItems = [
+        { day: 2, amount: 280.13, account: 'Crédit Agricole', category: 'Mutuo/Prestiti', note: 'HYUNDAI CAPITAL BANK' },
+        { day: 4, amount: 5.95, account: 'Crédit Agricole', category: 'Bollette/Utenze', note: 'CANONE MENSILE CONTO' },
+        { day: 5, amount: 37.94, account: 'Crédit Agricole', category: 'Bollette/Utenze', note: 'FASTWEB S.P.A. ADDEBITO' },
+        { day: 29, amount: 16.93, account: 'Crédit Agricole', category: 'Assicurazioni', note: 'Premio Polizza 20645695' },
+        { day: 29, amount: 370.97, account: 'Crédit Agricole', category: 'Mutuo/Prestiti', note: 'PAG.RATA MUTUO' }
+      ];
+
+      recurringItems.forEach(item => {
+        // Correggiamo i mesi con giorni inferiori (es. febbraio) impostando l'ultimo giorno disponibile se necessario
+        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+        const targetDay = Math.min(item.day, lastDayOfMonth);
+        
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
+        
+        // Controlla se esiste già questa spesa fissa esatta in quel mese per evitare duplicati
+        const exists = transactions.some(t => t.date === dateStr && t.note === item.note && t.account === item.account);
+        
+        if (!exists) {
+          transactions.push({
+            id: 'rec_' + year + '_' + month + '_' + item.day + '_' + Math.random().toString(36).substr(2, 5),
+            type: 'uscita',
+            amount: item.amount,
+            account: item.account,
+            destAccount: null,
+            category: item.category,
+            date: dateStr,
+            note: item.note,
+            isRecurring: true
+          });
+        }
+      });
+    }
 
     function saveData() {
       localStorage.setItem('app_finanze_data', JSON.stringify(transactions));
@@ -331,9 +382,20 @@
       closeBalanceModal();
     }
 
+    function deleteTransaction(id) {
+      if(confirm("Sei sicuro di voler eliminare questa operazione?")) {
+        transactions = transactions.filter(t => t.id !== id);
+        saveData();
+      }
+    }
+
     function updateUI() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
+      
+      // Genera in automatico le voci fisse per il mese attualmente visualizzato
+      checkRecurringTransactions(year, month);
+
       document.getElementById('current-month-display').innerText = currentDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
 
       let balances = { ...initialBalances };
@@ -350,12 +412,12 @@
         }
       });
 
-      document.getElementById('acc1-balance').innerText = `¥ ${balances['Deutsche Bank'].toFixed(2)}`;
-      document.getElementById('acc2-balance').innerText = `¥ ${balances['Crédit Agricole'].toFixed(2)}`;
-      document.getElementById('acc3-balance').innerText = `¥ ${balances['Postepay'].toFixed(2)}`;
+      document.getElementById('acc1-balance').innerText = `€ ${balances['Deutsche Bank'].toFixed(2)}`;
+      document.getElementById('acc2-balance').innerText = `€ ${balances['Crédit Agricole'].toFixed(2)}`;
+      document.getElementById('acc3-balance').innerText = `€ ${balances['Postepay'].toFixed(2)}`;
 
       const total = balances['Deutsche Bank'] + balances['Crédit Agricole'] + balances['Postepay'];
-      document.getElementById('total-balance').innerText = `¥ ${total.toFixed(2)}`;
+      document.getElementById('total-balance').innerText = `€ ${total.toFixed(2)}`;
 
       const search = document.getElementById('search-input').value.toLowerCase();
       const accFilter = document.getElementById('filter-account').value;
@@ -373,7 +435,7 @@
 
       monthTx.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
         const item = document.createElement('div');
-        item.className = `tx-item ${t.type}`;
+        item.className = `tx-item ${t.account}`;
         const sign = t.type === 'entrata' ? '+' : (t.type === 'uscita' ? '-' : '⇄');
         
         const catObj = categories.find(c => c.name === t.category);
@@ -389,7 +451,10 @@
               <p>${accText} • ${t.date}</p>
             </div>
           </div>
-          <div class="tx-amount ${t.type}">${sign} ¥ ${parseFloat(t.amount).toFixed(2)}</div>
+          <div class="tx-right">
+            <div class="tx-amount ${t.type}">${sign} € ${parseFloat(t.amount).toFixed(2)}</div>
+            <button class="btn-delete" onclick="deleteTransaction('${t.id}')" title="Elimina">🗑️</button>
+          </div>
         `;
         container.appendChild(item);
       });
@@ -418,7 +483,7 @@
     function handleFormSubmit(e) {
       e.preventDefault();
       const newTx = {
-        id: Date.now(),
+        id: Date.now().toString(),
         type: document.getElementById('type').value,
         amount: parseFloat(document.getElementById('amount').value),
         account: document.getElementById('account').value,
@@ -455,15 +520,17 @@
     }
 
     function exportCSV() {
-      let csv = 'Data,Tipo,Conto,Destinazione,Categoria,Importo,Note\n';
+      let csv = '\uFEFFData;Tipo;Conto Origine;Conto Destinazione;Categoria;Importo (€);Note\n';
       transactions.forEach(t => {
-        csv += `"${t.date}","${t.type}","${t.account}","${t.destAccount || ''}","${t.category}","${t.amount}","${t.note || ''}"\n`;
+        const amt = parseFloat(t.amount).toFixed(2).replace('.', ',');
+        const typeLabel = t.type === 'uscita' ? 'Uscita' : (t.type === 'entrata' ? 'Entrata' : 'Trasferimento');
+        csv += `"${t.date}";"${typeLabel}";"${t.account}";"${t.destAccount || ''}";"${t.category}";"${amt}";"${t.note || ''}"\n`;
       });
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.setAttribute('href', url);
-      a.setAttribute('download', 'estratto_conto.csv');
+      a.setAttribute('download', 'estratto_conto_finanze.csv');
       a.click();
     }
 
